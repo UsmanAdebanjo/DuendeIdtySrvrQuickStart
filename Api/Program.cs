@@ -12,14 +12,28 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAuthentication("Bearer")
                 .AddJwtBearer("Bearer", options =>
                 {
+                    //The token I want to validate who is issuing it?
                     options.Authority = "https://localhost:7275";
+                  
+                    //to validate audience
+                    options.Audience = "api1";
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateAudience = false
+                        ValidateAudience= false
+                        
                     };
-                    //to validate audience
-                    //options.Audience = "api1";
+                   
+                   
+
                 });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ApiScope", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("scope", "api1");
+    });
+});
 
 var app = builder.Build();
 
@@ -35,6 +49,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireAuthorization("ApiScope");
 
 app.Run();
